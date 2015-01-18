@@ -9,7 +9,8 @@ Author: Nathan Sprague
 """
 import numpy as np
 import layers
-import cc_layers
+#import cc_layers
+import lasagne
 import theano
 import theano.tensor as T
 import cPickle
@@ -70,78 +71,74 @@ class CNNQLearner(object):
 
         # CONSTRUCT THE LAYERS
         self.q_layers = []
-        self.q_layers.append(layers.Input2DLayer(self._batch_size,
-                                               self._num_input_features,
-                                               self._img_height,
-                                               self._img_width,
-                                               self.scale_input_by))
+        self.q_layers.append(lasagne.InputLayer((self._batch_size,
+                                                 self._num_input_features,
+                                                 self._img_width,
+                                                 self._img_height))
 
-        if approximator == 'cuda_conv':
-            self.q_layers.append(cc_layers.ShuffleBC01ToC01BLayer(
-                    self.q_layers[-1]))
+        # if approximator == 'cuda_conv':
+        #     self.q_layers.append(cc_layers.ShuffleBC01ToC01BLayer(
+        #             self.q_layers[-1]))
+        #     self.q_layers.append(
+        #         cc_layers.CudaConvnetConv2DLayer(self.q_layers[-1],
+        #                                          n_filters=16,
+        #                                          filter_size=8,
+        #                                          stride=4,
+        #                                          weights_std=.01,
+        #                                          init_bias_value=0.1))
+        #     self.q_layers.append(
+        #         cc_layers.CudaConvnetConv2DLayer(self.q_layers[-1],
+        #                                          n_filters=32,
+        #                                          filter_size=4,
+        #                                          stride=2,
+        #                                          weights_std=.01,
+        #                                          init_bias_value=0.1))
+        #     self.q_layers.append(cc_layers.ShuffleC01BToBC01Layer(
+        #             self.q_layers[-1]))
+
+        if approximator == 'conv':
             self.q_layers.append(
-                cc_layers.CudaConvnetConv2DLayer(self.q_layers[-1],
-                                                 n_filters=16,
-                                                 filter_size=8,
-                                                 stride=4,
-                                                 weights_std=.01,
-                                                 init_bias_value=0.1))
-            self.q_layers.append(
-                cc_layers.CudaConvnetConv2DLayer(self.q_layers[-1],
-                                                 n_filters=32,
-                                                 filter_size=4,
-                                                 stride=2,
-                                                 weights_std=.01,
-                                                 init_bias_value=0.1))
-            self.q_layers.append(cc_layers.ShuffleC01BToBC01Layer(
-                    self.q_layers[-1]))
-
-        elif approximator == 'conv':
-            self.q_layers.append(layers.StridedConv2DLayer(self.q_layers[-1],
-                                                         n_filters=16,
-                                                         filter_width=8,
-                                                         filter_height=8,
-                                                         stride_x=4,
-                                                         stride_y=4,
-                                                         weights_std=.01,
-                                                         init_bias_value=0.01))
-
-            self.q_layers.append(layers.StridedConv2DLayer(self.q_layers[-1],
-                                                         n_filters=32,
-                                                         filter_width=4,
-                                                         filter_height=4,
-                                                         stride_x=2,
-                                                         stride_y=2,
-                                                         weights_std=.01,
-                                                         init_bias_value=0.01))
-        if approximator == 'cuda_conv' or approximator == 'conv':
-
-            self.q_layers.append(layers.DenseLayer(self.q_layers[-1],
-                                                   n_outputs=256,
-                                                   weights_std=0.01,
-                                                   init_bias_value=0.1,
-                                                   dropout=0,
-                                                   nonlinearity=layers.rectify))
+                lasagne.Conv2DLayer(self.q_layers[-1],
+                                    n_filters=16,
+                                    filter_size=8,
+                                    strides=(4,4),
+                                    W=lasagne.init.Normal(std=.01),
+                                    b=lasagne.init.Constant(0.01)))
 
             self.q_layers.append(
-                layers.DenseLayer(self.q_layers[-1],
-                                  n_outputs=num_actions,
-                                  weights_std=0.01,
-                                  init_bias_value=0.1,
-                                  dropout=0,
-                                  nonlinearity=layers.identity))
+                lasagne.Conv2DLayer(self.q_layers[-1],
+                                    n_filters=32,
+                                    filter_size=4,
+                                    strides=(2,2),
+                                    W=lasagne.init.Normal(std=.01),
+                                    b=lasagne.init.Constant(0.01)))
+        if approximator == 'conv':
+
+            self.q_layers.append(\
+                lasagne.DenseLayer(self.q_layers[-1],
+                                   num_units=256,
+                                   W=lasagne.init.Normal(std=.01),
+                                   b=lasagne.init.Constant(0.1),
+                                   nonlinearity=lasagne.nonlinearities.rectify))
+
+            self.q_layers.append(\
+                lasagne.DenseLayer(self.q_layers[-1],
+                                   num_units=num_actions,
+                                   W=lasagne.init.Normal(std=.01),
+                                   b=lasagne.init.Constant(0.1),
+                                   nonlinearity=lasagne.nonlinearities.identity))
 
 
         if approximator == 'none':
             self.q_layers.append(\
-                layers.DenseLayerNoBias(self.q_layers[-1],
-                                        n_outputs=num_actions,
-                                        weights_std=0.00,
-                                        dropout=0,
-                                        nonlinearity=layers.identity))
+                lasagne.DenseLayer(self.q_layers[-1],
+                                   num_units=num_actions,
+                                   W=lasagne.init.Constant(0),
+                                   b=None,
+                                   nonlinearity=lasagne.nonlinearities.identity))
 
 
-        self.q_layers.append(layers.OutputLayer(self.q_layers[-1]))
+        self.q_layers.append(lasagne.OutputLayer(self.q_layers[-1]))
 
         for i in range(len(self.q_layers)-1):
             print self.q_layers[i].get_output_shape()
@@ -150,7 +147,7 @@ class CNNQLearner(object):
         # Now create a network (using the same weights)
         # for next state q values
         self.next_layers = copy_layers(self.q_layers)
-        self.next_layers[0] = layers.Input2DLayer(self._batch_size,
+        self.next_layers[0] = lasagne.Input2DLayer(self._batch_size,
                                                   self._num_input_features,
                                                   self._img_width,
                                                   self._img_height,
@@ -173,7 +170,7 @@ class CNNQLearner(object):
         error = T.mean(diff_masked ** 2)
         self._loss = error * diff_masked.shape[1] #
 
-        self._parameters = layers.all_parameters(self.q_layers[-1])
+        self._parameters = lasagne.all_parameters(self.q_layers[-1])
 
         self._idx = T.lscalar('idx')
 
@@ -262,8 +259,10 @@ class CNNQLearner(object):
     def train(self, states, actions, rewards, next_states,
               terminals, epochs=1):
         num_batches_valid = states.shape[0] // self._batch_size
-        self.states_shared.set_value(states)
-        self.states_shared_next.set_value(next_states)
+
+        #TODO: move input scaling to the GPU
+        self.states_shared.set_value(states / self.scale_input_by)
+        self.states_shared_next.set_value(next_states / self.scale_input_by )
         self.actions_shared.set_value(actions)
         self.rewards_shared.set_value(rewards)
         for epoch in xrange(epochs):
