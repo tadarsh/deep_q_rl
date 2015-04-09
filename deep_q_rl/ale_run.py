@@ -81,26 +81,22 @@ def main(args):
     p2 = subprocess.Popen(command, env=my_env, close_fds=close_fds)
 
     # Start RLGlue Experiment
-    # Check if sharing weights from a trained network
-    if trained_network_share is None:
-        p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
+    p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
                            str(parameters.steps_per_epoch),
                            '--test_length', str(parameters.test_steps),
                            '--num_epochs', str(parameters.epochs)],
                           env=my_env, close_fds=close_fds)
-    else:
-        p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
-                           str(parameters.steps_per_epoch),
-                           '--test_length', str(parameters.test_steps),
-                           '--num_epochs', str(parameters.epochs), '--nn_trained_share', 
-                           str(parameters.trained_network_share), '--share_depth', int(parameters.share_depth)],
-                          env=my_env, close_fds=close_fds)
- 
 
     # Start RLGlue Agent
     command = ['./rl_glue_ale_agent.py']
     if parameters.experiment_prefix:
         command.extend(['--exp_pref', parameters.experiment_prefix])
+
+    # Check if sharing weights from a trained network
+    if parameters.trained_network_share:
+        command.extend(['--nn_trained_share', str(parameters.trained_network_share)]) 
+        command.extend(['--share_depth', str(parameters.share_depth)])
+
     p4 = subprocess.Popen(command + unknown, env=my_env, close_fds=close_fds)
 
     p1.wait()

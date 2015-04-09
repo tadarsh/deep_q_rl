@@ -176,11 +176,11 @@ class NeuralAgent(Agent):
 
         # If an trained network has been specified, 
         # use it to initialize weights
-        
         if self.nn_trained_share is None:
             print "No sharing between networks"
         else:
-            print "Sharing between networks"
+            print "Sharing between networks ", self.nn_trained_share
+            print "Depth", self.share_depth
             handle = open(self.nn_trained_share, 'r')
             trained_network = cPickle.load(handle)
 
@@ -203,7 +203,6 @@ class NeuralAgent(Agent):
                 self.network.q_layers[5].W.set_value(trained_network.q_layers[5].W.get_value())
                 self.network.q_layers[5].b.set_value(trained_network.q_layers[5].b.get_value())
                 self.network.q_layers[5].bias_params[0].set_value(trained_network.q_layers[5].bias_params[0].get_value())
-            
 
         self._open_results_file()
         self._open_learning_file()
