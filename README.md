@@ -1,4 +1,15 @@
 # Modified for weight sharing at different levels in the Neural Network among DQN agents
+Includes additional options for sharing upto 3 levels.
+Usage:
+--trained-nn-share for specifying a trained pkl file
+--depth-share for specifying the level of weight sharing. 1 indicates initializing the new network with weights
+from the first convolutional layer of the trained network. Similarly, 2 initializes both the convolutional layers.
+3 initializes both convolutional layers and the fully connected layer.
+
+Modified by:
+Adarsh Tadimari
+(www.adarshtadimari.com)
+
 
 # Introduction 
 This package provides a Theano-based implementation of the deep
