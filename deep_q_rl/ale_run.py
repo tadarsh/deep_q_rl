@@ -49,6 +49,10 @@ def main(args):
     parser.add_argument('--glue-port', dest="glue_port", type=int,
                         default=DEFAULT_PORT,
                         help='rlglue port (default: %(default)s)')
+    parser.add_argument('--trained-nn-share', dest="trained_network_share", type=str, default=None, 
+                        help='Trained Network to share weights from')
+    parser.add_argument('--share-depth', dest="share_depth", type=int, default=0, 
+                        help='Depth of sharing. 1 - CC1, 2 - CC1&2, 3 - CC1,2,FC1')
     parameters, unknown = parser.parse_known_args(args)
 
     my_env = os.environ.copy()
@@ -77,11 +81,21 @@ def main(args):
     p2 = subprocess.Popen(command, env=my_env, close_fds=close_fds)
 
     # Start RLGlue Experiment
-    p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
+    # Check if sharing weights from a trained network
+    if trained_network_share is None:
+        p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
                            str(parameters.steps_per_epoch),
                            '--test_length', str(parameters.test_steps),
                            '--num_epochs', str(parameters.epochs)],
                           env=my_env, close_fds=close_fds)
+    else:
+        p3 = subprocess.Popen(['./rl_glue_ale_experiment.py', '--epoch_length',
+                           str(parameters.steps_per_epoch),
+                           '--test_length', str(parameters.test_steps),
+                           '--num_epochs', str(parameters.epochs), '--nn_trained_share', 
+                           str(parameters.trained_network_share), '--share_depth', int(parameters.share_depth)],
+                          env=my_env, close_fds=close_fds)
+ 
 
     # Start RLGlue Agent
     command = ['./rl_glue_ale_agent.py']

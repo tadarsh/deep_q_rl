@@ -103,8 +103,13 @@ class NeuralAgent(Agent):
                             help='Pickle file containing trained net.')
         parser.add_argument('--pause', type=float, default=0,
                             help='Amount of time to pause display while testing.')
+        parser.add_argument('--nn_trained_share', type=str, default=None, 
+                            help='Previously trained file whose weights are going to be shared.')
+        parser.add_argument('--share_depth', type=int, default=0, 
+                            help='1 - first convolutional, 2 - first two convolutional, 3 - 2 conv + fully connected.')
         # Create instance variables directy from the arguments:
         parser.parse_known_args(namespace=self)
+
 
         # CREATE A FOLDER TO HOLD RESULTS
         time_str = time.strftime("_%m-%d-%H-%M_", time.gmtime())
@@ -168,6 +173,37 @@ class NeuralAgent(Agent):
         else:
             handle = open(self.nn_file, 'r')
             self.network = cPickle.load(handle)
+
+        # If an trained network has been specified, 
+        # use it to initialize weights
+        
+        if self.nn_trained_share is None:
+            print "No sharing between networks"
+        else:
+            print "Sharing between networks"
+            handle = open(self.nn_trained_share, 'r')
+            trained_network = cPickle.load(handle)
+
+            # Sharing weights of the first convolutional layer
+            print "Sharing weights for Convolution Layer 1"
+            self.network.q_layers[2].W.set_value(trained_network.q_layers[2].W.get_value())
+            self.network.q_layers[2].b.set_value(trained_network.q_layers[2].b.get_value())
+            self.network.q_layers[2].bias_params[0].set_value(trained_network.q_layers[2].bias_params[0].get_value())
+
+            # Sharing weights of the second convolutional layer
+            if self.share_depth >= 2:
+                print "Sharing weights for Convolution Layer 2"
+                self.network.q_layers[3].W.set_value(trained_network.q_layers[3].W.get_value())
+                self.network.q_layers[3].b.set_value(trained_network.q_layers[3].b.get_value())
+                self.network.q_layers[3].bias_params[0].set_value(trained_network.q_layers[3].bias_params[0].get_value())
+
+            # Sharing weights of the fully connected layer
+            if self.share_depth >= 3:
+                print "Sharing weights for FC layer"
+                self.network.q_layers[5].W.set_value(trained_network.q_layers[5].W.get_value())
+                self.network.q_layers[5].b.set_value(trained_network.q_layers[5].b.get_value())
+                self.network.q_layers[5].bias_params[0].set_value(trained_network.q_layers[5].bias_params[0].get_value())
+            
 
         self._open_results_file()
         self._open_learning_file()
