@@ -1,5 +1,6 @@
-# Introduction 
+# Modified for weight sharing at different levels in the Neural Network among DQN agents
 
+# Introduction 
 This package provides a Theano-based implementation of the deep
 Q-learning algorithm described in:
 
