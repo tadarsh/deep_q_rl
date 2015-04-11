@@ -51,7 +51,7 @@ def main(args):
                         help='rlglue port (default: %(default)s)')
     parser.add_argument('--trained-nn-share', dest="trained_network_share", type=str, default=None, 
                         help='Trained Network to share weights from')
-    parser.add_argument('--share-depth', dest="share_depth", type=int, default=0, 
+    parser.add_argument('--share-layers', dest="share_layers", type=str, default="", 
                         help='Depth of sharing. 1 - CC1, 2 - CC1&2, 3 - CC1,2,FC1')
     parameters, unknown = parser.parse_known_args(args)
 
@@ -95,7 +95,7 @@ def main(args):
     # Check if sharing weights from a trained network
     if parameters.trained_network_share:
         command.extend(['--nn_trained_share', str(parameters.trained_network_share)]) 
-        command.extend(['--share_depth', str(parameters.share_depth)])
+        command.extend(['--share_layers', str(parameters.share_layers)])
 
     p4 = subprocess.Popen(command + unknown, env=my_env, close_fds=close_fds)
 
