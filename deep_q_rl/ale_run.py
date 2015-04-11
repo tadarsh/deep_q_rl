@@ -52,7 +52,7 @@ def main(args):
     parser.add_argument('--trained-nn-share', dest="trained_network_share", type=str, default=None, 
                         help='Trained Network to share weights from')
     parser.add_argument('--share-layers', dest="share_layers", type=str, default="", 
-                        help='Depth of sharing. 1 - CC1, 2 - CC1&2, 3 - CC1,2,FC1')
+                        help='Layers to be shared. 1 - CC1, 2 - CC2, 3 -FC1')
     parameters, unknown = parser.parse_known_args(args)
 
     my_env = os.environ.copy()

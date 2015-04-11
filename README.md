@@ -2,9 +2,14 @@
 Includes additional options for sharing upto 3 levels.
 Usage:
 --trained-nn-share for specifying a trained pkl file
---depth-share for specifying the level of weight sharing. 1 indicates initializing the new network with weights
-from the first convolutional layer of the trained network. Similarly, 2 initializes both the convolutional layers.
-3 initializes both convolutional layers and the fully connected layer.
+--share-layers for specifying the layers to be shared. It should be a numeric string. 1 indicates initializing the new network with weights
+from the first convolutional layer of the trained network. Similarly, 2 initializes the second convolutional layers.
+3 initializes the fully connected layer.
+
+for example:
+`$ python ale_run.py --trained-nn-share <nn-file.pkl> --share-layers 13`
+
+will share the first convolutional layer and the fully connected layer from the network in nn-file.pkl to the current network.
 
 Modified by:
 Adarsh Tadimari
