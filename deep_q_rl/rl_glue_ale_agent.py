@@ -107,6 +107,8 @@ class NeuralAgent(Agent):
                             help='Previously trained file whose weights are going to be shared.')
         parser.add_argument('--share_layers', type=str, default="", 
                             help='1 - first convolutional, 2 - second convolutional, 3 - fully connected. eg. 12 would share layers 1 and 2')
+        parser.add_argument('--flip', type=int, default=0, 
+                            help='1- flip weights')
         # Create instance variables directy from the arguments:
         parser.parse_known_args(namespace=self)
 
@@ -190,6 +192,17 @@ class NeuralAgent(Agent):
                 self.network.q_layers[2].W.set_value(trained_network.q_layers[2].W.get_value())
                 self.network.q_layers[2].b.set_value(trained_network.q_layers[2].b.get_value())
                 self.network.q_layers[2].bias_params[0].set_value(trained_network.q_layers[2].bias_params[0].get_value())
+
+                if self.flip == 1:
+                    print "Flipping weights in the first convolutional layer"
+                    W_old = trained_network.q_layers[2].W.get_value()
+                    for i in xrange(4):
+                        for j in xrange(16):
+                            temp = W_old[i, :, :, j]
+                            W_old[i, :, :, j] = temp[::-1].T
+                    self.network.q_layers[2].W.set_value(W_old)
+                            
+
 
             # Sharing weights of the second convolutional layer
             if self.share_layers.find('2') != -1:

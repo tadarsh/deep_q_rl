@@ -53,6 +53,8 @@ def main(args):
                         help='Trained Network to share weights from')
     parser.add_argument('--share-layers', dest="share_layers", type=str, default="", 
                         help='Layers to be shared. 1 - CC1, 2 - CC2, 3 -FC1')
+    parser.add_argument('--flip', dest="flip", type=int, default=0, 
+                        help='1-Flip first convolution layer weights')
     parameters, unknown = parser.parse_known_args(args)
 
     my_env = os.environ.copy()
@@ -96,6 +98,8 @@ def main(args):
     if parameters.trained_network_share:
         command.extend(['--nn_trained_share', str(parameters.trained_network_share)]) 
         command.extend(['--share_layers', str(parameters.share_layers)])
+        if parameters.flip == 1:
+            command.extend(['--flip', str(parameters.flip)])
 
     p4 = subprocess.Popen(command + unknown, env=my_env, close_fds=close_fds)
 
