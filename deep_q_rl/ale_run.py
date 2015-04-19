@@ -51,6 +51,8 @@ def main(args):
                         help='rlglue port (default: %(default)s)')
     parser.add_argument('--trained-nn-share', dest="trained_network_share", type=str, default=None, 
                         help='Trained Network to share weights from')
+    parser.add_argument('--nn-file', dest="nn_file", type=str, default=None, 
+                        help='Trained Network to start learning from')
     parser.add_argument('--share-layers', dest="share_layers", type=str, default="", 
                         help='Layers to be shared. 1 - CC1, 2 - CC2, 3 -FC1')
     parser.add_argument('--flip', dest="flip", type=int, default=0, 
@@ -101,6 +103,8 @@ def main(args):
         if parameters.flip == 1:
             command.extend(['--flip', str(parameters.flip)])
 
+    if parameters.nn_file:
+        command.extend(['--nn_file', str(parameters.nn_file)])
     p4 = subprocess.Popen(command + unknown, env=my_env, close_fds=close_fds)
 
     p1.wait()
