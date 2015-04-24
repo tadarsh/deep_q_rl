@@ -79,6 +79,11 @@ def all_parameters(layer):
     """
     Recursive function to gather all parameters, starting from the output layer
     """
+    if isinstance(layer, OutputLayer) == False:
+        "Freezing parameters for layer 1"
+        if layer.get_output_shape()[0] == 16:
+            print "Freezing parameters for convolutional layer 1"
+            return [] 
     if isinstance(layer, InputLayer) or isinstance(layer, Input2DLayer):
         return []
     elif isinstance(layer, ConcatenateLayer):
