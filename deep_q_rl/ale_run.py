@@ -102,6 +102,8 @@ def main(args):
         command.extend(['--share_layers', str(parameters.share_layers)])
         if parameters.flip == 1:
             command.extend(['--flip', str(parameters.flip)])
+        elif parameters.flip == -1:
+            command.extend(['--flip', str(parameters.flip)])
 
     if parameters.nn_file:
         command.extend(['--nn_file', str(parameters.nn_file)])

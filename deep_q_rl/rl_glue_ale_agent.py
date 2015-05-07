@@ -201,6 +201,17 @@ class NeuralAgent(Agent):
                             temp = W_old[i, :, :, j]
                             W_old[i, :, :, j] = temp[::-1].T
                     self.network.q_layers[2].W.set_value(W_old)
+
+                if self.flip == -1:
+                    print "Flipping weights counterclockwise in the first convolutional layer"
+                    W_old = trained_network.q_layers[2].W.get_value()
+                    for i in xrange(4):
+                        for j in xrange(16):
+                            temp = W_old[i, :, :, j]
+                            temp = temp.T
+                            W_old[i, :, :, j] = temp[::-1]
+                    self.network.q_layers[2].W.set_value(W_old)
+                 
                             
 
 
